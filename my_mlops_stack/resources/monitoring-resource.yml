@@ -25,11 +25,11 @@ resources:
       assets_dir: /Users/${workspace.current_user.userName}/databricks_lakehouse_monitoring
       inference_log:
         granularities: [1 day]
-        model_id_col: model_id
+        model_id_col: "__db_model_id"
         prediction_col: "predictions" 
         label_col: price
         problem_type: PROBLEM_TYPE_REGRESSION
-        timestamp_col: timestamp_ms
+        timestamp_col: "__db_timestamp"
       schedule:
         quartz_cron_expression: 0 0 8 * * ? # Run Every day at 8am
         timezone_id: UTC
