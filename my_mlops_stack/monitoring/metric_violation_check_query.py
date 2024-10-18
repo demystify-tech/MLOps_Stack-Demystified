@@ -17,7 +17,7 @@ WITH recent_metrics AS (
   WHERE
     column_name = ":table"
     AND slice_key IS NULL
-    AND model_id != "*"
+    AND __db_model_id != "*"
     AND log_type = "INPUT"
   ORDER BY
     window DESC
@@ -28,7 +28,7 @@ WITH recent_metrics AS (
 The `column_name = ":table"` and `slice_key IS NULL` conditions ensure that the metric
 is selected for the entire table within the given granularity. The `log_type = "INPUT"`
 condition ensures that the primary table metrics are considered, but not the baseline
-table metrics. The `model_id!= "*"` condition ensures that the metric aggregated across
+table metrics. The `__db_model_id!= "*"` condition ensures that the metric aggregated across
 all model IDs is not selected.
 
 The second part of the query determines if the metric values have been violated with two cases. 
@@ -65,7 +65,7 @@ sql_query = """WITH recent_metrics AS (
   WHERE
     column_name = ":table"
     AND slice_key IS NULL
-    AND model_id != "*"
+    AND __db_model_id != "*"
     AND log_type = "INPUT"
   ORDER BY
     window DESC
