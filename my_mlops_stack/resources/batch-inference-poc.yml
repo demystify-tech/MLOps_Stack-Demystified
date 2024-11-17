@@ -1,11 +1,3 @@
-new_cluster: &new_cluster
-  new_cluster:
-    num_workers: 3
-    spark_version: 15.3.x-cpu-ml-scala2.12
-    node_type_id: Standard_D3_v2
-    custom_tags:
-      clusterSource: mlops-stacks_0.4
-
 common_permissions: &permissions
   permissions:
     - level: CAN_VIEW
@@ -14,16 +6,15 @@ common_permissions: &permissions
 resources:
   jobs:
     batch_inference_job:
-      name: ${bundle.target}-mlops_stack-batch-inference-job_poc
+      name: ${bundle.target}-airbnb-batch-inference
       tasks:
         - task_key: batch_inference
-          # <<: *new_cluster
           notebook_task:
             notebook_path: ../deployment/batch_inference/notebooks/BatchInference_poc.py
             base_parameters:
               env: ${bundle.target}
-              input_table_name: hive_metastore.default.dummy_inference_data
-              output_table_name: ${bundle.target}_my_mlops_stack_predictions_poc
+              input_table_name: overwatch_nonprod.airbnb.airbnb_dummy
+              output_table_name: overwatch_nonprod.airbnb.${bundle.target}_airbnb_predictions
               model_name: ${var.model_name}
               # git source information of current ML resource deployment. It will be persisted as part of the workflow run
               git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
@@ -32,10 +23,3 @@ resources:
         quartz_cron_expression: "0 0 11 * * ?" # daily at 11am
         timezone_id: UTC
       <<: *permissions
-      # If you want to turn on notifications for this job, please uncomment the below code,
-      # and provide a list of emails to the on_failure argument.
-      #
-      #  email_notifications:
-      #    on_failure:
-      #      - first@company.com
-      #      - second@company.com

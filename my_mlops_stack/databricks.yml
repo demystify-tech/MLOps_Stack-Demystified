@@ -5,13 +5,21 @@ bundle:
 variables:
   experiment_name:
     description: Experiment name for the model training.
-    default: /Users/${workspace.current_user.userName}/${bundle.target}-my_mlops_stack-experiment-poc
+    default: /Users/${workspace.current_user.userName}/${bundle.target}-airbnb-experiment
   model_name:
     description: Model name for the model training.
-    default: ${bundle.target}-my_mlops_stack-RandomForestRegressor_Model
+    default: ${bundle.target}-airbnb_pricing
   cluster_id:
     description: Cluster id for compute.
     default: 0603-073547-ypydpsk
+  catalog:
+    description: catalog name.
+    default: overwatch_nonprod
+  schema:
+    description: schema name.
+    default: airbnb
+
+
 
 include:
   # Resources folder contains ML artifact resources for the ML project that defines model and experiment
@@ -23,7 +31,7 @@ include:
   - ./resources/model-workflow-poc.yml
   - ./resources/batch-inference-poc.yml
   - ./resources/real-time-inference-poc.yml
-  - ./resources/monitoring-resource.yml
+  # - ./resources/monitoring-resource.yml
 
   # - ./resources/ml-artifacts-resource.yml
   # - ./resources/model-workflow-resource.yml

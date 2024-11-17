@@ -28,7 +28,7 @@ env = dbutils.widgets.get("env")
 # Path to the Hive-registered Delta table containing the training data.
 dbutils.widgets.text(
     "realtime_raw_data",
-    "hive_metastore.default.dummy_inference_data",
+    "overwatch_nonprod.airbnb.airbnb_dummy",
     label="Path to the realtime data",
 )
 realtime_raw_data = dbutils.widgets.get("realtime_raw_data")
@@ -114,4 +114,9 @@ final_df = pd.concat([df, predictions_df], axis=1)
 final_df.display()
 
 # COMMAND ----------
+# Convert the Pandas DataFrame to a Spark DataFrame
+final_df_spark = spark.createDataFrame(final_df)
+
+# Write the Spark DataFrame as a Delta table
+final_df_spark.write.format("delta").mode("overwrite").saveAsTable(output_table_name)
 # final_df.write.format("delta").mode("overwrite").saveAsTable(output_table_name)
