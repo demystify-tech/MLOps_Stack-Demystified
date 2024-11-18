@@ -1,0 +1,29 @@
+common_permissions: &permissions
+  permissions:
+    - level: CAN_VIEW
+      group_name: users
+
+resources:
+  jobs:
+    monitoring_job:
+      name: ${bundle.target}-airbnb-monitoring
+      tasks:
+        - task_key: monitoring
+          notebook_task:
+            notebook_path: ../monitoring/Monitor.py
+            base_parameters:
+              env: ${bundle.target}
+              baseline_table: overwatch_nonprod.airbnb.airbnb_baseline
+              inference_table: overwatch_nonprod.airbnb.dev_airbnb_predictions
+              model_name: ${var.model_name}
+              prediction_col: prediction
+              label: price
+              id_col: ID
+              new_observation: overwatch_nonprod.airbnb.airbnb_simulated
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+          existing_cluster_id: ${var.cluster_id}
+      schedule:
+        quartz_cron_expression: "0 0 11 * * ?" # daily at 11am
+        timezone_id: UTC
+      <<: *permissions
