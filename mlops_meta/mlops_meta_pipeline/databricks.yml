@@ -1,0 +1,62 @@
+# The name of the bundle. run `databricks bundle schema` to see the full bundle settings schema .
+bundle:
+  name: ac-mlops-pipeline
+
+variables:
+  experiment_name:
+    description: Experiment name for the model training.
+    default: /Users/${workspace.current_user.userName}/${bundle.target}-ac-mlops-pipeline-experiment
+  model_name:
+    description: Model name for the model training.
+    default: ac-mlops-pipeline-model
+  config_path:
+    description: Config path for common.yaml.
+    default: "files/common/clv/raw"
+  cluster_id:
+    description: Config path for common.yaml.
+    default: "0603-073547-ypydpsk"
+
+include:
+  # Resources folder contains ML artifact resources for the ML project that defines model and experiment
+  # And workflows resources for the ML project including model training -> validation -> deployment,
+  # feature engineering,  batch inference, quality monitoring, metric refresh, alerts and triggering retraining
+  #- ./resources/batch-inference-workflow-resource.yml
+  #- ./resources/ml-artifacts-resource.yml
+  # - ./resources/model-metrics-extract.yml
+  - ./resources/meta-classifier-DE.yml
+  # - ./resources/clv-lifetimevalue-bucket-classifier-DE.yml
+
+  # TODO: uncomment once monitoring inference table has been created
+  # - ./resources/monitoring-resource.yml
+
+sync:
+  paths:
+    
+    - ../common
+    - ./
+    
+
+# Deployment Target specific values for workspace
+targets:
+  dev:
+    workspace:
+      host: https://adb-2753962522174656.16.azuredatabricks.net
+
+  staging:
+    workspace:
+      host: https://adb-2753962522174656.16.azuredatabricks.net
+
+  prod:
+    workspace:
+      host: https://adb-2753962522174656.16.azuredatabricks.net
+    resources:
+      # jobs:
+      #  clv_job_lifetime_de:
+      #   schedule:
+      #     quartz_cron_expression: "0 0 7 * * ?" # daily at 7am
+      #     timezone_id: UTC
+      jobs:
+       clv_job_repurchase_de:  
+        schedule:
+          quartz_cron_expression: "0 0 7 * * ?" # daily at 7am
+          timezone_id: UTC 

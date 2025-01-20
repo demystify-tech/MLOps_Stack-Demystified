@@ -1,0 +1,11 @@
+# Overall model configs applicable to all countries
+# Overall model configs applicable to all countries
+features:
+    numerical: ['ENTRefferal','NoMarketingMail','NoMarketingPhone','NoMarketingSMS','pre_repurchase_app_duration','pre_repurchase_app_attended','pre_repurchase_app_noshow']
+    categorical: ['CombinedHearingLoss','Gender','TerritoryCode','HasQualifiedHL']
+min_variance: 0.0001
+test_size: 0.3
+rootTableName: repurchase_classifier
+experimentName: clv_it_repurchase_classifier
+keycolumns: ['ContactCode', 'CountryCode', 'first_purchase_made', 'repurchase_window_passed', 'repurchase_flag']
+dropFeatures: ['repurchase_flag', 'index', 'id']

@@ -1,0 +1,21 @@
+# common.yaml
+data:
+  input_catalog: "overwatch_nonprod"
+  input_schema: "mlops"
+  input_table: "raw_data"
+  out_catalog: "overwatch_nonprod"
+  out_schema: "mlops_out"
+  train_test_split_ratio: 0.8
+  batch_size: 1000
+
+model:
+  algorithm: "RandomForest"  # Can be expanded to multiple models
+  params:
+    n_estimators: 100
+    max_depth: 10
+    random_state: 42
+
+mlflow:
+  tracking_uri: "databricks"
+  experiment_name: "ML_Project_Experiment"
+  run_name: "ML_Run"

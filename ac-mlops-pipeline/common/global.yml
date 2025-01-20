@@ -1,0 +1,11 @@
+# The name of the bundle. run `databricks bundle schema` to see the full bundle settings schema.
+bundle:
+  name: ac-mlops-pipeline
+
+variables:
+  experiment_name:
+    description: Experiment name for the model training.
+    default: /Users/${workspace.current_user.userName}/${bundle.target}-ac-mlops-pipeline-experiment
+  model_name:
+    description: Model name for the model training.
+    default: ac-mlops-pipeline-model

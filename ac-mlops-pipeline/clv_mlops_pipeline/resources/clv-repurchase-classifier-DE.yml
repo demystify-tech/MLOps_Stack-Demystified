@@ -1,0 +1,128 @@
+new_cluster: &new_cluster
+  new_cluster:
+    num_workers: 3
+    spark_version: 15.4.x-cpu-ml-scala2.12
+    node_type_id: Standard_D3_v2
+    custom_tags:
+      clusterSource: mlops-stacks_0.4
+    data_security_mode: SINGLE_USER
+      
+
+common_permissions: &permissions
+  permissions:
+    - level: CAN_VIEW
+      group_name: users
+
+resources:
+  jobs:
+    clv_job_repurchase_de:
+      name: ${bundle.target}-clv-ac-mlops-pipeline-repurchase-classifier-DE
+      job_clusters:
+        - job_cluster_key: clv_job_cluster
+          <<: *new_cluster
+      tasks:
+        - task_key: dataExtraction
+          job_cluster_key: clv_job_cluster
+          notebook_task:
+            notebook_path: ../data_extraction/notebooks/data_extraction.py
+            base_parameters:
+              # TODO modify these arguments to reflect your setup.
+              input_country: DE
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+        - task_key: PickupFeatures
+          job_cluster_key: clv_job_cluster
+          depends_on:
+            - task_key: dataExtraction     
+          notebook_task:
+            notebook_path: ../feature_engineering/notebooks/GenerateAndWriteFeatures.py
+            base_parameters:
+              # TODO modify these arguments to reflect your setup.
+              features_transform_module: pickup_features
+              # TODO: Empty start/end dates will process the whole range. Update this as needed to process recent data.
+              input_country: DE
+              input_catalog: acda-ml-dev
+              root_path: files/common/clv/repurchase_classifier
+              output_schema_name: acda_ml
+              output_catalog_name: ${bundle.target}
+              primary_keys: id
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+        - task_key: DataSegregation
+          job_cluster_key: clv_job_cluster
+          depends_on:
+            - task_key: PickupFeatures          
+          notebook_task:
+            notebook_path: ../data_segregation/notebooks/DataSegregation.py
+            base_parameters:
+              # TODO modify these arguments to reflect your setup.
+              transform_module: traintestsplit
+              # TODO: Empty start/end dates will process the whole range. Update this as needed to process recent data.
+              input_country: DE
+              feature_catalog: ${bundle.target}
+              root_path: files/common/clv/repurchase_classifier
+              preprocess_fn: repurchase_preprocess_data
+              feature_schema_name: acda_ml
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+        - task_key: Training
+          job_cluster_key: clv_job_cluster
+          depends_on:
+            - task_key: DataSegregation          
+          notebook_task:
+            notebook_path: ../training/notebooks/Train.py
+            base_parameters:
+              # TODO modify these arguments to reflect your setup.
+              module: log_reg
+              # TODO: Empty start/end dates will process the whole range. Update this as needed to process recent data.
+              input_country: DE
+              training_set_catalog: ${bundle.target}
+              root_path: files/common/clv/repurchase_classifier
+              training_set_schema_name: acda_ml
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+        - task_key: Evaluation
+          job_cluster_key: clv_job_cluster
+          depends_on:
+            - task_key: Training          
+          notebook_task:
+            notebook_path: ../evaluation/notebooks/ModelEvaluation.py
+            base_parameters:
+              # TODO modify these arguments to reflect your setup.
+              metric: recall
+              # TODO: Empty start/end dates will process the whole range. Update this as needed to process recent data.
+              input_country: DE
+              training_set_catalog: ${bundle.target}
+              root_path: files/common/clv/repurchase_classifier
+              training_set_schema_name: acda_ml
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+        - task_key: Inference
+          job_cluster_key: clv_job_cluster
+          depends_on:
+            - task_key: Evaluation          
+          notebook_task:
+            notebook_path: ../inference/batch_inference/notebooks/BatchInference.py
+            base_parameters:
+              # TODO modify these arguments to reflect your setup.
+              module: inferenceutils
+              # TODO: Empty start/end dates will process the whole range. Update this as needed to process recent data.
+              input_country: DE
+              training_set_catalog: ${bundle.target}
+              root_path: files/common/clv/repurchase_classifier
+              preprocess_fn: repurchase_preprocess_inference_data
+              training_set_schema_name: acda_ml
+              # git source information of current ML resource deployment. It will be persisted as part of the workflow run
+              git_source_info: url:${bundle.git.origin_url}; branch:${bundle.git.branch}; commit:${bundle.git.commit}
+
+      #schedule:
+        #quartz_cron_expression: "0 0 7 * * ?" # daily at 7am
+        #timezone_id: UTC
+      <<: *permissions
+      # If you want to turn on notifications for this job, please uncomment the below code,
+      # and provide a list of emails to the on_failure argument.
+      #
+      #  email_notifications:
+      #    on_failure:
+      #      - first@company.com
+      #      - second@company.com

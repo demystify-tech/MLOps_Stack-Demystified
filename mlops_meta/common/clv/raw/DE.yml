@@ -1,0 +1,23 @@
+schema_name: noveo
+start_date: 2011-01-01
+repurchase_window: 8
+quantiles:
+    0:
+        lower_limit: 223
+        upper_limit: 1698
+    1:
+        lower_limit: 1698
+        upper_limit: 2730
+    2:
+        lower_limit: 2730
+        upper_limit: 4317
+    3:
+        lower_limit: 4317
+        upper_limit: 100000        
+table_types:
+    sales:
+        table_value: sales
+    appointments:
+        table_value: appointments
+    contacts:
+        table_value: contacts
